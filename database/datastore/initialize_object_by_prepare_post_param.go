@@ -11,17 +11,12 @@ import (
 	"github.com/silver-volt4/swapdoodle/globals"
 )
 
-func InitializeObjectByPreparePostParam(ownerPID types.PID, param datastore_types.DataStorePreparePostParam) (uint64, *nex.Error) {
-	var dataID uint64
+func InitializeObjectByPreparePostParam(ownerPID types.PID, param datastore_types.DataStorePreparePostParamV1) (uint32, *nex.Error) {
+	var dataID uint32
 
 	tagArray := make([]string, 0, len(param.Tags))
 	for i := range param.Tags {
 		tagArray = append(tagArray, string(param.Tags[i]))
-	}
-
-	extraDataArray := make([]string, 0, len(param.ExtraData))
-	for i := range param.Tags {
-		extraDataArray = append(extraDataArray, string(param.ExtraData[i]))
 	}
 
 	now := time.Now()
@@ -39,8 +34,6 @@ func InitializeObjectByPreparePostParam(ownerPID types.PID, param datastore_type
 		period,
 		refer_data_id,
 		tags,
-		persistence_slot_id,
-		extra_data,
 		creation_date,
 		update_date
 	) VALUES (
@@ -58,9 +51,7 @@ func InitializeObjectByPreparePostParam(ownerPID types.PID, param datastore_type
 		$12,
 		$13,
 		$14,
-		$15,
-		$16,
-		$17
+		$15
 	) RETURNING data_id`,
 		ownerPID,
 		param.Size,
@@ -75,8 +66,6 @@ func InitializeObjectByPreparePostParam(ownerPID types.PID, param datastore_type
 		param.Period,
 		param.ReferDataID,
 		pq.Array(tagArray),
-		param.PersistenceInitParam.PersistenceSlotID, // TODO - Check param.PersistenceInitParam.DeleteLastObject?
-		pq.Array(extraDataArray),
 		now,
 		now,
 	).Scan(&dataID)

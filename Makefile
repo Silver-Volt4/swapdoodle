@@ -44,7 +44,7 @@ SERVER_BUILD := $(BRANCH):$(REMOTE_PATH)@$(HASH)
 else
 # * .git folder not present, assume downloaded from zip file and just use folder name
 $(info "$(CYAN)git repository not found. Building server build string from folder name$(RESET)")
-SERVER_BUILD := super-mario-maker
+SERVER_BUILD := swapdoodle
 endif
 
 # * Final build string
@@ -57,4 +57,4 @@ ifeq ($(wildcard .env),)
 endif
 	go get -u
 	go mod tidy
-	go build -ldflags "-X 'main.serverBuildString=$(BUILD_STRING)'" -o ./build/super-mario-maker
+	go build -mod=vendor -ldflags "-X 'main.serverBuildString=$(BUILD_STRING)'" -o ./build/swapdoodle

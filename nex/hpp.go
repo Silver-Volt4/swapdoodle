@@ -29,8 +29,7 @@ func StartHppServer() {
 	})
 
 	// * Register the common handlers first so that they can be overridden if needed
-	registerCommonSecureProtocols()
-	registerNEXProtocols()
+	registerProtocols()
 
 	port, _ := strconv.Atoi(os.Getenv("PN_SD_HPP_SERVER_PORT"))
 

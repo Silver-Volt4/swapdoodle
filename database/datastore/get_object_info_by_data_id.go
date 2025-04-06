@@ -75,17 +75,10 @@ func GetObjectInfoByDataID(dataID types.UInt64) (datastore_types.DataStoreMetaIn
 		return datastore_types.NewDataStoreMetaInfo(), nex.NewError(nex.ResultCodes.DataStore.Unknown, err.Error())
 	}
 
-	ratings, nexError := GetObjectRatingsWithSlotByDataID(metaInfo.DataID)
-	if nexError != nil {
-		return datastore_types.NewDataStoreMetaInfo(), nexError
-	}
-
 	metaInfo.Tags = make(types.List[types.String], 0, len(tagArray))
 	for i := range tagArray {
 		metaInfo.Tags = append(metaInfo.Tags, types.String(tagArray[i]))
 	}
-
-	metaInfo.Ratings = ratings
 
 	metaInfo.CreatedTime.FromTimestamp(createdDate)
 	metaInfo.UpdatedTime.FromTimestamp(updatedDate)
