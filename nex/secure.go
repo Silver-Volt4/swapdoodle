@@ -8,11 +8,13 @@ import (
 	"github.com/silver-volt4/swapdoodle/globals"
 )
 
+const ACCESS_KEY = "76f26496" // The glorious result of ~7 hours of brute forcing!
+
 func StartHppServer() {
 	globals.HppServer = nex.NewServer()
 	globals.HppServer.SetDefaultNEXVersion(nex.NewPatchedNEXVersion(3, 8, 3, "AMAJ"))
 	globals.HppServer.SetKerberosPassword(globals.KerberosPassword)
-	globals.HppServer.SetAccessKey("9f2b4678")
+	globals.HppServer.SetAccessKey(ACCESS_KEY)
 
 	globals.HppServer.On("Data", func(packet *nex.HPPPacket) {
 		request := packet.RMCRequest()
