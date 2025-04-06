@@ -3,18 +3,28 @@ package datastore_db
 import (
 	"time"
 
-	"github.com/PretendoNetwork/nex-go"
-	datastore_types "github.com/PretendoNetwork/nex-protocols-go/datastore/types"
+	"github.com/PretendoNetwork/nex-go/v2"
+	"github.com/PretendoNetwork/nex-go/v2/types"
+	datastore_types "github.com/PretendoNetwork/nex-protocols-go/v2/datastore/types"
 	"github.com/lib/pq"
 	"github.com/silver-volt4/swapdoodle/database"
 	"github.com/silver-volt4/swapdoodle/globals"
 )
 
-func InitializeObjectByPreparePostParam(ownerPID uint32, param *datastore_types.DataStorePreparePostParam) (uint64, uint32) {
-	now := time.Now()
-
+func InitializeObjectByPreparePostParam(ownerPID types.PID, param datastore_types.DataStorePreparePostParam) (uint64, *nex.Error) {
 	var dataID uint64
 
+	tagArray := make([]string, 0, len(param.Tags))
+	for i := range param.Tags {
+		tagArray = append(tagArray, string(param.Tags[i]))
+	}
+
+	extraDataArray := make([]string, 0, len(param.ExtraData))
+	for i := range param.Tags {
+		extraDataArray = append(extraDataArray, string(param.ExtraData[i]))
+	}
+
+	now := time.Now()
 	err := database.Postgres.QueryRow(`INSERT INTO datastore.objects (
 		owner,
 		size,
@@ -64,9 +74,9 @@ func InitializeObjectByPreparePostParam(ownerPID uint32, param *datastore_types.
 		param.Flag,
 		param.Period,
 		param.ReferDataID,
-		pq.Array(param.Tags),
+		pq.Array(tagArray),
 		param.PersistenceInitParam.PersistenceSlotID, // TODO - Check param.PersistenceInitParam.DeleteLastObject?
-		pq.Array(param.ExtraData),
+		pq.Array(extraDataArray),
 		now,
 		now,
 	).Scan(&dataID)
@@ -74,8 +84,8 @@ func InitializeObjectByPreparePostParam(ownerPID uint32, param *datastore_types.
 	if err != nil {
 		globals.Logger.Error(err.Error())
 		// TODO - Send more specific errors?
-		return 0, nex.Errors.DataStore.Unknown
+		return 0, nex.NewError(nex.ResultCodes.DataStore.Unknown, err.Error())
 	}
 
-	return dataID, 0
+	return dataID, nil
 }

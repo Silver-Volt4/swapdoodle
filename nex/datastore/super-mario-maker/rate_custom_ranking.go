@@ -1,43 +1,29 @@
 package nex_datastore_super_mario_maker
 
 import (
-	nex "github.com/PretendoNetwork/nex-go"
-	datastore_super_mario_maker "github.com/PretendoNetwork/nex-protocols-go/datastore/super-mario-maker"
-	datastore_super_mario_maker_types "github.com/PretendoNetwork/nex-protocols-go/datastore/super-mario-maker/types"
+	"github.com/PretendoNetwork/nex-go/v2"
+	"github.com/PretendoNetwork/nex-go/v2/types"
+	datastore_super_mario_maker "github.com/PretendoNetwork/nex-protocols-go/v2/datastore/super-mario-maker"
+	datastore_super_mario_maker_types "github.com/PretendoNetwork/nex-protocols-go/v2/datastore/super-mario-maker/types"
 	datastore_smm_db "github.com/silver-volt4/swapdoodle/database/datastore/super-mario-maker"
 	"github.com/silver-volt4/swapdoodle/globals"
 )
 
-func RateCustomRanking(err error, packet nex.PacketInterface, callID uint32, params []*datastore_super_mario_maker_types.DataStoreRateCustomRankingParam) uint32 {
+func RateCustomRanking(err error, packet nex.PacketInterface, callID uint32, params types.List[datastore_super_mario_maker_types.DataStoreRateCustomRankingParam]) (*nex.RMCMessage, *nex.Error) {
 	if err != nil {
 		globals.Logger.Error(err.Error())
-		return nex.Errors.DataStore.Unknown
+		return nil, nex.NewError(nex.ResultCodes.DataStore.Unknown, err.Error())
 	}
-
-	client := packet.Sender()
 
 	// TODO - Check the period. The real server does check this, just unsure what it means or what the check is
-	for _, param := range params {
-		datastore_smm_db.InsertOrUpdateCustomRanking(param.DataID, param.ApplicationID, param.Score)
+	for i := range params {
+		datastore_smm_db.InsertOrUpdateCustomRanking(params[i].DataID, params[i].ApplicationID, params[i].Score)
 	}
 
-	rmcResponse := nex.NewRMCResponse(datastore_super_mario_maker.ProtocolID, callID)
-	rmcResponse.SetSuccess(datastore_super_mario_maker.MethodRateCustomRanking, nil)
+	rmcResponse := nex.NewRMCSuccess(globals.HppServer, nil)
+	rmcResponse.ProtocolID = datastore_super_mario_maker.ProtocolID
+	rmcResponse.MethodID = datastore_super_mario_maker.MethodRateCustomRanking
+	rmcResponse.CallID = callID
 
-	rmcResponseBytes := rmcResponse.Bytes()
-
-	responsePacket, _ := nex.NewPacketV1(client, nil)
-
-	responsePacket.SetVersion(1)
-	responsePacket.SetSource(0xA1)
-	responsePacket.SetDestination(0xAF)
-	responsePacket.SetType(nex.DataPacket)
-	responsePacket.SetPayload(rmcResponseBytes)
-
-	responsePacket.AddFlag(nex.FlagNeedsAck)
-	responsePacket.AddFlag(nex.FlagReliable)
-
-	globals.HppServer.Send(responsePacket)
-
-	return 0
+	return rmcResponse, nil
 }

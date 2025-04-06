@@ -3,17 +3,27 @@ package datastore_smm_db
 import (
 	"time"
 
-	"github.com/PretendoNetwork/nex-go"
-	datastore_smm_types "github.com/PretendoNetwork/nex-protocols-go/datastore/super-mario-maker/types"
+	"github.com/PretendoNetwork/nex-go/v2"
+	"github.com/PretendoNetwork/nex-go/v2/types"
+	datastore_smm_types "github.com/PretendoNetwork/nex-protocols-go/v2/datastore/super-mario-maker/types"
 	"github.com/lib/pq"
 	"github.com/silver-volt4/swapdoodle/database"
 	"github.com/silver-volt4/swapdoodle/globals"
 )
 
-func InitializeObjectByAttachFileParam(ownerPID uint32, param *datastore_smm_types.DataStoreAttachFileParam) (uint64, uint32) {
+func InitializeObjectByAttachFileParam(ownerPID types.PID, param datastore_smm_types.DataStoreAttachFileParam) (types.UInt64, *nex.Error) {
 	now := time.Now()
 
-	var dataID uint64
+	var dataID types.UInt64
+	tagArray := make([]string, 0, len(param.PostParam.Tags))
+	for i := range param.PostParam.Tags {
+		tagArray = append(tagArray, string(param.PostParam.Tags[i]))
+	}
+
+	extraDataArray := make([]string, 0, len(param.PostParam.ExtraData))
+	for i := range param.PostParam.Tags {
+		extraDataArray = append(extraDataArray, string(param.PostParam.ExtraData[i]))
+	}
 
 	err := database.Postgres.QueryRow(`INSERT INTO datastore.objects (
 		owner,
@@ -64,9 +74,9 @@ func InitializeObjectByAttachFileParam(ownerPID uint32, param *datastore_smm_typ
 		param.PostParam.Flag,
 		param.PostParam.Period,
 		param.ReferDataID,
-		pq.Array(param.PostParam.Tags),
+		pq.Array(tagArray),
 		param.PostParam.PersistenceInitParam.PersistenceSlotID, // TODO - Check param.PersistenceInitParam.DeleteLastObject?
-		pq.Array(param.PostParam.ExtraData),
+		pq.Array(extraDataArray),
 		now,
 		now,
 	).Scan(&dataID)
@@ -74,8 +84,8 @@ func InitializeObjectByAttachFileParam(ownerPID uint32, param *datastore_smm_typ
 	if err != nil {
 		globals.Logger.Error(err.Error())
 		// TODO - Send more specific errors?
-		return 0, nex.Errors.DataStore.Unknown
+		return types.NewUInt64(0), nex.NewError(nex.ResultCodes.DataStore.Unknown, err.Error())
 	}
 
-	return dataID, 0
+	return dataID, nil
 }

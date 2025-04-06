@@ -1,20 +1,19 @@
 package nex_datastore_super_mario_maker
 
 import (
-	nex "github.com/PretendoNetwork/nex-go"
-	datastore_super_mario_maker "github.com/PretendoNetwork/nex-protocols-go/datastore/super-mario-maker"
-	datastore_types "github.com/PretendoNetwork/nex-protocols-go/datastore/types"
+	"github.com/PretendoNetwork/nex-go/v2"
+	"github.com/PretendoNetwork/nex-go/v2/types"
+	datastore_super_mario_maker "github.com/PretendoNetwork/nex-protocols-go/v2/datastore/super-mario-maker"
+	datastore_types "github.com/PretendoNetwork/nex-protocols-go/v2/datastore/types"
 	datastore_smm_db "github.com/silver-volt4/swapdoodle/database/datastore/super-mario-maker"
 	"github.com/silver-volt4/swapdoodle/globals"
 )
 
-func RecommendedCourseSearchObject(err error, packet nex.PacketInterface, callID uint32, param *datastore_types.DataStoreSearchParam, extraData []string) uint32 {
+func RecommendedCourseSearchObject(err error, packet nex.PacketInterface, callID uint32, param datastore_types.DataStoreSearchParam, extraData types.List[types.String]) (*nex.RMCMessage, *nex.Error) {
 	if err != nil {
 		globals.Logger.Error(err.Error())
-		return nex.Errors.DataStore.Unknown
+		return nil, nex.NewError(nex.ResultCodes.DataStore.Unknown, err.Error())
 	}
-
-	client := packet.Sender()
 
 	// * This method is used in 100 Mario and Course World
 	// *
@@ -36,35 +35,28 @@ func RecommendedCourseSearchObject(err error, packet nex.PacketInterface, callID
 	// ! All requests are treated as filtering for "All" right now
 	// TODO - Use these ranges to properly filter by difficulty
 
-	// TODO - Use the offet? Real client never uses it, but might be nice for completeness sake?
-	pRankingResults, errCode := datastore_smm_db.GetRandomCoursesWithLimit(int(param.ResultRange.Length))
-	if errCode != 0 {
-		return errCode
+	// HACK The database load is exponential here and
+	length := int(param.ResultRange.Length)
+	maxLength := 25
+	if length < 0 || length > maxLength {
+		globals.Logger.Warningf("Limiting request to %d courses (was %d)", maxLength, length)
+		length = maxLength
 	}
 
-	rmcResponseStream := nex.NewStreamOut(globals.HppServer)
+	// TODO - Use the offet? Real client never uses it, but might be nice for completeness sake?
+	pRankingResults, nexError := datastore_smm_db.GetRandomCoursesWithLimit(length)
+	if nexError != nil {
+		return nil, nexError
+	}
 
-	rmcResponseStream.WriteListStructure(pRankingResults)
+	rmcResponseStream := nex.NewByteStreamOut(globals.HppServer.LibraryVersions(), globals.HppServer.ByteStreamSettings())
 
-	rmcResponseBody := rmcResponseStream.Bytes()
+	pRankingResults.WriteTo(rmcResponseStream)
 
-	rmcResponse := nex.NewRMCResponse(datastore_super_mario_maker.ProtocolID, callID)
-	rmcResponse.SetSuccess(datastore_super_mario_maker.MethodRecommendedCourseSearchObject, rmcResponseBody)
+	rmcResponse := nex.NewRMCSuccess(globals.HppServer, rmcResponseStream.Bytes())
+	rmcResponse.ProtocolID = datastore_super_mario_maker.ProtocolID
+	rmcResponse.MethodID = datastore_super_mario_maker.MethodRecommendedCourseSearchObject
+	rmcResponse.CallID = callID
 
-	rmcResponseBytes := rmcResponse.Bytes()
-
-	responsePacket, _ := nex.NewPacketV1(client, nil)
-
-	responsePacket.SetVersion(1)
-	responsePacket.SetSource(0xA1)
-	responsePacket.SetDestination(0xAF)
-	responsePacket.SetType(nex.DataPacket)
-	responsePacket.SetPayload(rmcResponseBytes)
-
-	responsePacket.AddFlag(nex.FlagNeedsAck)
-	responsePacket.AddFlag(nex.FlagReliable)
-
-	globals.HppServer.Send(responsePacket)
-
-	return 0
+	return rmcResponse, nil
 }

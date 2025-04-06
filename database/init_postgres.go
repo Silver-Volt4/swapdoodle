@@ -1,13 +1,10 @@
 package database
 
 import (
-	"context"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/lib/pq"
-	"github.com/minio/minio-go/v7"
 	"github.com/silver-volt4/swapdoodle/globals"
 )
 
@@ -165,11 +162,8 @@ func ensureEventCourseMetaDataFileExists() {
 
 	objectSizeS3, err := globals.S3ObjectSize(bucket, key)
 	if err != nil {
-		_, err = globals.MinIOClient.PutObject(context.TODO(), bucket, key, strings.NewReader(""), 0, minio.PutObjectOptions{ContentType: "application/octet-stream"})
-		if err != nil {
-			globals.Logger.Errorf("Failed to stat event course metadata file. Ensure your S3 credentials are correct and the 900000.bin file is uploaded to your bucket. S3 error: %s", err.Error())
-			os.Exit(0)
-		}
+		globals.Logger.Errorf("Failed to stat event course metadata file. Ensure your S3 credentials are correct and the 900000.bin file is uploaded to your bucket. S3 error: %s", err.Error())
+		os.Exit(0)
 	}
 
 	globals.Logger.Success("Event course metadata file found. Verifying database")
