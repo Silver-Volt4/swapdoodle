@@ -33,10 +33,6 @@ func PreparePostObjectV1(err error, packet nex.PacketInterface, callID uint32, p
 		return nil, errCode
 	}
 
-	if errCode != nil {
-		return nil, errCode
-	}
-
 	bucket := globals.DatastoreCommon.S3Bucket
 	key := fmt.Sprintf("%s/%d.bin", "letters", dataID)
 
