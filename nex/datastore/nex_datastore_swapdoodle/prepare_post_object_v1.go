@@ -51,9 +51,9 @@ func PreparePostObjectV1(err error, packet nex.PacketInterface, callID uint32, p
 		return nil, errCode
 	}
 
-	pReqPostInfo := datastore_types.NewDataStoreReqPostInfo()
+	pReqPostInfo := datastore_types.NewDataStoreReqPostInfoV1()
 
-	pReqPostInfo.DataID = types.NewUInt64(uint64(dataID))
+	pReqPostInfo.DataID = types.NewUInt32(dataID)
 	pReqPostInfo.URL = types.NewString(URL.String())
 	pReqPostInfo.RequestHeaders = types.NewList[datastore_types.DataStoreKeyValue]()
 	pReqPostInfo.FormFields = types.NewList[datastore_types.DataStoreKeyValue]()
