@@ -76,7 +76,7 @@ func PreparePostObjectV1(err error, packet nex.PacketInterface, callID uint32, p
 
 	rmcResponse := nex.NewRMCSuccess(endpoint, rmcResponseBody)
 	rmcResponse.ProtocolID = datastore.ProtocolID
-	rmcResponse.MethodID = datastore.MethodPreparePostObject
+	rmcResponse.MethodID = datastore.MethodPreparePostObjectV1
 	rmcResponse.CallID = callID
 
 	return rmcResponse, nil

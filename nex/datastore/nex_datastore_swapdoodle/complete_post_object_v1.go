@@ -70,7 +70,7 @@ func CompletePostObjectV1(err error, packet nex.PacketInterface, callID uint32, 
 	}
 
 	bucket := globals.DatastoreCommon.S3Bucket
-	key := fmt.Sprintf("%d.bin", param.DataID)
+	key := fmt.Sprintf("%s/%d.bin", "letters", param.DataID)
 
 	if param.IsSuccess {
 		objectSizeS3, err := globals.DatastoreCommon.S3ObjectSize(bucket, key)
@@ -103,7 +103,7 @@ func CompletePostObjectV1(err error, packet nex.PacketInterface, callID uint32, 
 
 	rmcResponse := nex.NewRMCSuccess(endpoint, nil)
 	rmcResponse.ProtocolID = datastore.ProtocolID
-	rmcResponse.MethodID = datastore.MethodCompletePostObject
+	rmcResponse.MethodID = datastore.MethodCompletePostObjectV1
 	rmcResponse.CallID = callID
 
 	return rmcResponse, nil
