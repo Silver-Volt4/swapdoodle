@@ -18,7 +18,7 @@ func GetNotificationURL(err error, packet nex.PacketInterface, callID uint32, pa
 
 	urlInfo := datastore_types.NewDataStoreReqGetNotificationURLInfo()
 
-	urlInfo.URL = types.NewString("https://example.com")
+	urlInfo.URL = types.NewString("https://example.com/")
 	urlInfo.Key = types.NewString("some/key")
 	urlInfo.Query = types.NewString("?test=test")
 	urlInfo.RootCACert = types.NewBuffer(nil)
@@ -30,9 +30,5 @@ func GetNotificationURL(err error, packet nex.PacketInterface, callID uint32, pa
 	rmcResponse.MethodID = datastore.MethodGetNotificationURL
 	rmcResponse.CallID = callID
 
-	// I'm actually returning an error here because otherwise it would
-	// connect to example.com every second request and that would slow down development
-	return nil, nex.NewError(nex.ResultCodes.DataStore.Unknown, "asdf")
-
-	//return rmcResponse, nil
+	return rmcResponse, nil
 }
