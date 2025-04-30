@@ -5,7 +5,12 @@ This may succeed, or go absolutely nowhere. I don't even know Go lol
 
 [PretendoNetwork/super-mario-maker](https://github.com/PretendoNetwork/super-mario-maker) was used as a base for this code. I hope that's alright!
 
+## Status
+
+Currently, only uploading works. You can use the "Check for updates" button in Swapdoodle, which will invoke an upload. Downloading notes does not work as we do not currently know how that works. If you are in possession of **unencrypted** Swapdoodle network dumps that you can share, please reach out to us!
+
 ## Configuration
+
 All configuration options are handled via environment variables
 
 `.env` files are supported
