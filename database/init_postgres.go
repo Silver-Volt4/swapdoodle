@@ -57,7 +57,7 @@ func initPostgres() {
 	_, err = Postgres.Exec(`CREATE TABLE IF NOT EXISTS datastore.notifications (
 		notification_id BIGSERIAL NOT NULL PRIMARY KEY,
 		recipient_pid INT,
-		data_id INT REFERENCES datastore.objects (data_id)
+		data_id BIGINT REFERENCES datastore.objects (data_id)
 	)`)
 	if err != nil {
 		globals.Logger.Critical(err.Error())
