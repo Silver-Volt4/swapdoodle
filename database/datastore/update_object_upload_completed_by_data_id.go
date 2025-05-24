@@ -1,8 +1,6 @@
 package datastore_db
 
 import (
-	"database/sql"
-
 	"github.com/PretendoNetwork/nex-go/v2"
 	"github.com/PretendoNetwork/nex-go/v2/types"
 	"github.com/silver-volt4/swapdoodle/database"
@@ -10,25 +8,18 @@ import (
 )
 
 func UpdateObjectUploadCompletedByDataID(dataID types.UInt64, uploadCompleted bool) *nex.Error {
-	var underReview bool
-
-	err := database.Postgres.QueryRow(`SELECT update_password FROM datastore.objects WHERE data_id=$1 AND deleted=FALSE`, dataID).Scan(&underReview)
+	_, err := database.Postgres.Exec(`UPDATE datastore.objects SET upload_completed=$1 WHERE data_id=$2`, uploadCompleted, dataID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nex.NewError(nex.ResultCodes.DataStore.NotFound, "Object not found")
-		}
-
 		globals.Logger.Error(err.Error())
-
 		// TODO - Send more specific errors?
 		return nex.NewError(nex.ResultCodes.DataStore.Unknown, err.Error())
 	}
 
-	if underReview {
-		return nex.NewError(nex.ResultCodes.DataStore.UnderReviewing, "This object is under review")
-	}
-
-	_, err = database.Postgres.Exec(`UPDATE datastore.objects SET upload_completed=$1 WHERE data_id=$2`, uploadCompleted, dataID)
+	// Create notifications
+	_, err = database.Postgres.Exec(`INSERT INTO datastore.notifications (data_id, recipient_pid)
+		SELECT data_id, UNNEST(permission_recipients) as recipient_pid
+		FROM datastore.objects
+		WHERE data_id = $1`, dataID)
 	if err != nil {
 		globals.Logger.Error(err.Error())
 		// TODO - Send more specific errors?
