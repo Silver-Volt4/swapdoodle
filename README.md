@@ -7,7 +7,7 @@ This may succeed, or go absolutely nowhere. I don't even know Go lol
 
 ## Status
 
-Currently, only uploading works. You can use the "Check for updates" button in Swapdoodle, which will invoke an upload. Downloading notes does not work as we do not currently know how that works. If you are in possession of **unencrypted** Swapdoodle network dumps that you can share, please reach out to us!
+WE BALLIN, THIS MIGHT GET SOMEWHERE!!! (read: i understand almost everything and cant wait to implement it. if only it werent finals period at school)
 
 ## Configuration
 
