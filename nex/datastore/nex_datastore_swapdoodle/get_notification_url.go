@@ -1,6 +1,9 @@
 package nex_datastore_swapdoodle
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/PretendoNetwork/nex-go/v2"
 	"github.com/PretendoNetwork/nex-go/v2/types"
 	datastore "github.com/PretendoNetwork/nex-protocols-go/v2/datastore"
@@ -14,13 +17,22 @@ func GetNotificationURL(err error, packet nex.PacketInterface, callID uint32, pa
 		return nil, nex.NewError(nex.ResultCodes.DataStore.Unknown, err.Error())
 	}
 
+	bucket := globals.DatastoreCommon.S3Bucket
+	key := fmt.Sprintf("%s/%d", "notifications", packet.Sender().PID())
+
+	url, err := globals.DatastoreCommon.S3Presigner.GetObject(bucket, key, time.Hour*24*7)
+	if err != nil {
+		globals.Logger.Error(err.Error())
+		return nil, nex.NewError(nex.ResultCodes.DataStore.OperationNotAllowed, "change_error")
+	}
+
 	rmcResponseStream := nex.NewByteStreamOut(globals.HppServer.LibraryVersions(), globals.HppServer.ByteStreamSettings())
 
 	urlInfo := datastore_types.NewDataStoreReqGetNotificationURLInfo()
 
-	urlInfo.URL = types.NewString("https://example.com/")
-	urlInfo.Key = types.NewString("some/key")
-	urlInfo.Query = types.NewString("?test=test")
+	urlInfo.URL = types.NewString(url.Host)
+	urlInfo.Key = types.NewString(url.Path)
+	urlInfo.Query = types.NewString("?" + url.Query().Encode())
 	urlInfo.RootCACert = types.NewBuffer(nil)
 
 	urlInfo.WriteTo(rmcResponseStream)
