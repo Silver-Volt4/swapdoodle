@@ -72,18 +72,5 @@ func initPostgres() {
 		os.Exit(0)
 	}
 
-	// * Custom rankings are specific to SMM
-	// TODO - Store the period? What even is the period of custom rankings?
-	_, err = Postgres.Exec(`CREATE TABLE IF NOT EXISTS datastore.object_custom_rankings (
-		data_id bigint,
-		application_id bigint,
-		value bigint,
-		PRIMARY KEY(data_id, application_id)
-	)`)
-	if err != nil {
-		globals.Logger.Critical(err.Error())
-		os.Exit(0)
-	}
-
 	globals.Logger.Success("Postgres tables created")
 }
