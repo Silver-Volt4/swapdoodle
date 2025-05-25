@@ -8,8 +8,8 @@ The server should be considered alpha-quality at the moment. It has worked in ou
 
 ## Credits
 
-[PretendoNetwork/super-mario-maker](https://github.com/PretendoNetwork/super-mario-maker), it was used as a base for this code. I hope that's alright, I don't know Go much... 
-[milesthecreator.bsky.social](https://bsky.app/profile/milesthecreator.bsky.social), who supplied us with unencrypted Swapdoodle network dumps that have significantly helped development.
+[PretendoNetwork/super-mario-maker](https://github.com/PretendoNetwork/super-mario-maker), it was used as a base for this code. I hope that's alright, I don't know Go much...  
+[milesthecreator.bsky.social](https://bsky.app/profile/milesthecreator.bsky.social), who supplied us with unencrypted Swapdoodle network dumps that have significantly helped development.  
 
 ## Configuration
 
