@@ -26,6 +26,9 @@ func registerProtocols() {
 	sdDatastore.GetNotificationURL = nex_datastore_swapdoodle.GetNotificationURL
 	sdDatastore.PreparePostObjectV1 = nex_datastore_swapdoodle.PreparePostObjectV1
 	sdDatastore.CompletePostObjectV1 = nex_datastore_swapdoodle.CompletePostObjectV1
+	sdDatastore.PrepareGetObjectV1 = nex_datastore_swapdoodle.PrepareGetObjectV1
+	sdDatastore.GetSpecificMetaV1 = nex_datastore_swapdoodle.GetSpecificMetaV1
+	sdDatastore.GetNewArrivedNotificationsV1 = nex_datastore_swapdoodle.GetNewArrivedNotificationsV1
 
 	globals.HppServer.RegisterServiceProtocol(sdDatastore)
 
@@ -39,6 +42,7 @@ func registerProtocols() {
 	commonDataStoreProtocol.GetObjectSizeByDataID = datastore_db.GetObjectSizeByDataID
 	commonDataStoreProtocol.UpdateObjectUploadCompletedByDataID = datastore_db.UpdateObjectUploadCompletedByDataID
 	commonDataStoreProtocol.DeleteObjectByDataID = datastore_db.DeleteObjectByDataID
+	commonDataStoreProtocol.OnAfterCompletePostObject = datastore_db.SyncDatastoreNotifications
 
 	globals.DatastoreCommon = commonDataStoreProtocol
 }

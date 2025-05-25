@@ -2,6 +2,7 @@ package nex_datastore_swapdoodle
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/PretendoNetwork/nex-go/v2"
@@ -30,8 +31,8 @@ func GetNotificationURL(err error, packet nex.PacketInterface, callID uint32, pa
 
 	urlInfo := datastore_types.NewDataStoreReqGetNotificationURLInfo()
 
-	urlInfo.URL = types.NewString(url.Host)
-	urlInfo.Key = types.NewString(url.Path)
+	urlInfo.URL = types.NewString(url.Scheme + "://" + url.Host + "/")
+	urlInfo.Key = types.NewString(strings.Replace(url.Path, "/", "", 1))
 	urlInfo.Query = types.NewString("?" + url.Query().Encode())
 	urlInfo.RootCACert = types.NewBuffer(nil)
 

@@ -9,15 +9,22 @@ import (
 	"github.com/silver-volt4/swapdoodle/globals"
 )
 
-func IsObjectAvailable(dataID types.UInt64) *nex.Error {
-	var temp int
-	err := database.Postgres.QueryRow(`SELECT data_id FROM datastore.objects WHERE data_id=$1 AND upload_completed=TRUE AND deleted=FALSE`, dataID).Scan(&temp)
+func VerifyReadAccessByDataIdAndPID(dataID types.UInt64, pid types.PID) *nex.Error {
+	nexError := IsObjectAvailable(dataID)
+	if nexError != nil {
+		return nexError
+	}
+
+	var t bool
+	err := database.Postgres.QueryRow(`SELECT 1 FROM datastore.objects WHERE data_id=$1 AND (owner = $2 OR $2 IN (SELECT UNNEST(permission_recipients)))`, dataID, pid).Scan(&t)
+
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nex.NewError(nex.ResultCodes.DataStore.NotFound, "Object not found")
+			return nex.NewError(nex.ResultCodes.DataStore.OperationNotAllowed, "Access denied")
 		}
 
 		globals.Logger.Error(err.Error())
+
 		// TODO - Send more specific errors?
 		return nex.NewError(nex.ResultCodes.DataStore.Unknown, err.Error())
 	}
