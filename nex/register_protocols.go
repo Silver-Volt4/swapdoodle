@@ -42,7 +42,6 @@ func registerProtocols() {
 	commonDataStoreProtocol.GetObjectSizeByDataID = datastore_db.GetObjectSizeByDataID
 	commonDataStoreProtocol.UpdateObjectUploadCompletedByDataID = datastore_db.UpdateObjectUploadCompletedByDataID
 	commonDataStoreProtocol.DeleteObjectByDataID = datastore_db.DeleteObjectByDataID
-	commonDataStoreProtocol.OnAfterCompletePostObject = datastore_db.SyncDatastoreNotifications
 
 	globals.DatastoreCommon = commonDataStoreProtocol
 }
