@@ -1,13 +1,15 @@
 # Swapdoodle HPP server
 
-An ongoing attempt at creating a replacement Swapdoodle server.  
-This may succeed, or go absolutely nowhere. I don't even know Go lol  
-
-[PretendoNetwork/super-mario-maker](https://github.com/PretendoNetwork/super-mario-maker) was used as a base for this code. I hope that's alright!
+A sorta-working replacement server for Swapdoodle
 
 ## Status
 
 The server should be considered alpha-quality at the moment. It has worked in our private testing, but broader public testing will be needed.
+
+## Credits
+
+[PretendoNetwork/super-mario-maker](https://github.com/PretendoNetwork/super-mario-maker), it was used as a base for this code. I hope that's alright, I don't know Go much... 
+[milesthecreator.bsky.social](https://bsky.app/profile/milesthecreator.bsky.social), who supplied us with unencrypted Swapdoodle network dumps that have significantly helped development.
 
 ## Configuration
 
