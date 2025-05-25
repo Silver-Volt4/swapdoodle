@@ -7,7 +7,7 @@ This may succeed, or go absolutely nowhere. I don't even know Go lol
 
 ## Status
 
-WE BALLIN, THIS MIGHT GET SOMEWHERE!!! (read: i understand almost everything and cant wait to implement it. if only it werent finals period at school)
+The server should be considered alpha-quality at the moment. It has worked in our private testing, but broader public testing will be needed.
 
 ## Configuration
 

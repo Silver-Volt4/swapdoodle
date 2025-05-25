@@ -2,7 +2,6 @@ package datastore_db
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/PretendoNetwork/nex-go/v2"
 	"github.com/PretendoNetwork/nex-go/v2/types"
@@ -41,6 +40,7 @@ func UpdateObjectUploadCompletedByDataID(dataID types.UInt64, uploadCompleted bo
 		return nex.NewError(nex.ResultCodes.DataStore.Unknown, err.Error())
 	}
 
+	// Update "noti-files"
 	for rows.Next() {
 		var notificationId uint64
 		var pid types.PID
@@ -49,7 +49,10 @@ func UpdateObjectUploadCompletedByDataID(dataID types.UInt64, uploadCompleted bo
 		bucket := globals.DatastoreCommon.S3Bucket
 		key := fmt.Sprintf("%s/%d", "notifications", pid)
 
-		globals.S3SetFileContent(bucket, key, fmt.Sprintf("%d,%d,%d", notificationId, pid, time.Now().Unix()))
+		// TODO: Looks like we're not the only ones wondering about the meaning of that last number:
+		// https://github.com/PretendoNetwork/pokemon-rumble-world-secure/blob/main/nex/datastore/complete_post_object_v1.go#L46
+		// Let's leave it constant for now...
+		globals.S3SetFileContent(bucket, key, fmt.Sprintf("%d,%d,%d", notificationId, pid, 1479103557))
 	}
 
 	return nil
