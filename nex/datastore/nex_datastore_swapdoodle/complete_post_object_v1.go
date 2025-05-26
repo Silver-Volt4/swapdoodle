@@ -1,8 +1,6 @@
 package nex_datastore_swapdoodle
 
 import (
-	"fmt"
-
 	"github.com/PretendoNetwork/nex-go/v2"
 	"github.com/PretendoNetwork/nex-go/v2/types"
 	datastore "github.com/PretendoNetwork/nex-protocols-go/v2/datastore"
@@ -46,21 +44,19 @@ func CompletePostObjectV1(err error, packet nex.PacketInterface, callID uint32, 
 		return nil, nex.NewError(nex.ResultCodes.DataStore.Unknown, "change_error")
 	}
 
-	dataid := types.NewUInt64(uint64(param.DataID))
+	dataID := types.NewUInt64(uint64(param.DataID))
 
 	connection := packet.Sender()
 	endpoint := connection.Endpoint()
 
-	// * If GetObjectInfoByDataID returns data then that means
-	// * the object has already been marked as uploaded. So do
-	// * nothing
-	_, errCode := globals.DatastoreCommon.GetObjectInfoByDataID(dataid)
+	// If GetObjectInfoByDataID does not return an error, it means the object has already been marked as uploaded
+	_, errCode := globals.DatastoreCommon.GetObjectInfoByDataID(dataID)
 	if errCode == nil {
 		return nil, nex.NewError(nex.ResultCodes.DataStore.PermissionDenied, "change_error")
 	}
 
-	// * Only allow an objects owner to make this request
-	ownerPID, errCode := globals.DatastoreCommon.GetObjectOwnerByDataID(dataid)
+	// Only allow the object's owner to make this request
+	ownerPID, errCode := globals.DatastoreCommon.GetObjectOwnerByDataID(dataID)
 	if errCode != nil {
 		return nil, errCode
 	}
@@ -70,7 +66,7 @@ func CompletePostObjectV1(err error, packet nex.PacketInterface, callID uint32, 
 	}
 
 	bucket := globals.DatastoreCommon.S3Bucket
-	key := fmt.Sprintf("%s/%d.bin", "letters", param.DataID)
+	key := globals.S3GetLetterKey(param.DataID)
 
 	if param.IsSuccess {
 		objectSizeS3, err := globals.DatastoreCommon.S3ObjectSize(bucket, key)
@@ -79,25 +75,25 @@ func CompletePostObjectV1(err error, packet nex.PacketInterface, callID uint32, 
 			return nil, nex.NewError(nex.ResultCodes.DataStore.NotFound, "change_error")
 		}
 
-		objectSizeDB, errCode := globals.DatastoreCommon.GetObjectSizeByDataID(dataid)
-		if errCode != nil {
-			return nil, errCode
+		objectSizeDB, nErr := globals.DatastoreCommon.GetObjectSizeByDataID(dataID)
+		if nErr != nil {
+			return nil, nErr
 		}
 
 		if objectSizeS3 != uint64(objectSizeDB) {
-			globals.Logger.Errorf("Object with DataID %d did not upload correctly! Mismatched sizes", dataid)
+			globals.Logger.Errorf("Object with DataID %d did not upload correctly! Mismatched sizes", dataID)
 			// TODO - Is this a good error?
 			return nil, nex.NewError(nex.ResultCodes.DataStore.Unknown, "change_error")
 		}
 
-		errCode = globals.DatastoreCommon.UpdateObjectUploadCompletedByDataID(dataid, true)
-		if errCode != nil {
-			return nil, errCode
+		nErr = globals.DatastoreCommon.UpdateObjectUploadCompletedByDataID(dataID, true)
+		if nErr != nil {
+			return nil, nErr
 		}
 	} else {
-		errCode := globals.DatastoreCommon.DeleteObjectByDataID(dataid)
-		if errCode != nil {
-			return nil, errCode
+		nErr := globals.DatastoreCommon.DeleteObjectByDataID(dataID)
+		if nErr != nil {
+			return nil, nErr
 		}
 	}
 

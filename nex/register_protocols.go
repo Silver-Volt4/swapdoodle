@@ -16,24 +16,24 @@ import (
 func registerProtocols() {
 	secureProtocol := secure.NewProtocol()
 	globals.HppServer.RegisterServiceProtocol(secureProtocol)
+
 	commonSecureProtocol := securecommon.NewCommonProtocol(secureProtocol)
 	commonSecureProtocol.CreateReportDBRecord = func(pid types.PID, reportID types.UInt32, reportData types.QBuffer) error {
 		return nil
 	}
 
-	sdDatastore := datastore.NewProtocol()
+	// Register DataStore protocol
+	datastore := datastore.NewProtocol()
+	datastore.GetNotificationURL = nex_datastore_swapdoodle.GetNotificationURL
+	datastore.PreparePostObjectV1 = nex_datastore_swapdoodle.PreparePostObjectV1
+	datastore.CompletePostObjectV1 = nex_datastore_swapdoodle.CompletePostObjectV1
+	datastore.PrepareGetObjectV1 = nex_datastore_swapdoodle.PrepareGetObjectV1
+	datastore.GetSpecificMetaV1 = nex_datastore_swapdoodle.GetSpecificMetaV1
+	datastore.GetNewArrivedNotificationsV1 = nex_datastore_swapdoodle.GetNewArrivedNotificationsV1
+	globals.HppServer.RegisterServiceProtocol(datastore)
 
-	sdDatastore.GetNotificationURL = nex_datastore_swapdoodle.GetNotificationURL
-	sdDatastore.PreparePostObjectV1 = nex_datastore_swapdoodle.PreparePostObjectV1
-	sdDatastore.CompletePostObjectV1 = nex_datastore_swapdoodle.CompletePostObjectV1
-	sdDatastore.PrepareGetObjectV1 = nex_datastore_swapdoodle.PrepareGetObjectV1
-	sdDatastore.GetSpecificMetaV1 = nex_datastore_swapdoodle.GetSpecificMetaV1
-	sdDatastore.GetNewArrivedNotificationsV1 = nex_datastore_swapdoodle.GetNewArrivedNotificationsV1
-
-	globals.HppServer.RegisterServiceProtocol(sdDatastore)
-
-	commonDataStoreProtocol := datastorecommon.NewCommonProtocol(sdDatastore)
-
+	// Register Common DataStore protocol
+	commonDataStoreProtocol := datastorecommon.NewCommonProtocol(datastore)
 	commonDataStoreProtocol.SetMinIOClient(globals.MinIOClient)
 	commonDataStoreProtocol.S3Bucket = os.Getenv("PN_SD_CONFIG_S3_BUCKET")
 	commonDataStoreProtocol.S3Presigner = globals.Presigner
@@ -42,6 +42,5 @@ func registerProtocols() {
 	commonDataStoreProtocol.GetObjectSizeByDataID = datastore_db.GetObjectSizeByDataID
 	commonDataStoreProtocol.UpdateObjectUploadCompletedByDataID = datastore_db.UpdateObjectUploadCompletedByDataID
 	commonDataStoreProtocol.DeleteObjectByDataID = datastore_db.DeleteObjectByDataID
-
 	globals.DatastoreCommon = commonDataStoreProtocol
 }

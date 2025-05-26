@@ -10,6 +10,9 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+const HPP_ACCESS_KEY = "76f26496"
+
+var LibraryVersion = nex.NewLibraryVersion(3, 8, 3)
 var Logger *plogger.Logger
 var KerberosPassword = "password" // * Default password
 var HppServer *nex.HPPServer

@@ -1,8 +1,6 @@
 package nex_datastore_swapdoodle
 
 import (
-	"fmt"
-
 	"github.com/PretendoNetwork/nex-go/v2"
 	datastore "github.com/PretendoNetwork/nex-protocols-go/v2/datastore"
 	datastore_types "github.com/PretendoNetwork/nex-protocols-go/v2/datastore/types"
@@ -12,7 +10,6 @@ import (
 
 func GetSpecificMetaV1(err error, packet nex.PacketInterface, callID uint32, param datastore_types.DataStoreGetSpecificMetaParamV1) (*nex.RMCMessage, *nex.Error) {
 	if err != nil {
-		fmt.Println("this failed")
 		globals.Logger.Error(err.Error())
 		return nil, nex.NewError(nex.ResultCodes.DataStore.Unknown, "change_error")
 	}
@@ -21,22 +18,19 @@ func GetSpecificMetaV1(err error, packet nex.PacketInterface, callID uint32, par
 	endpoint := connection.Endpoint()
 
 	metas, nErr := datastore_db.GetSpecificMetaByIDs(connection.PID(), param.DataIDs)
-
 	if nErr != nil {
-		fmt.Println(nErr)
+		globals.Logger.Error(nErr.Error())
 		return nil, nErr
 	}
 
-	rmcResponseStream := nex.NewByteStreamOut(endpoint.LibraryVersions(), endpoint.ByteStreamSettings())
+	resStream := nex.NewByteStreamOut(endpoint.LibraryVersions(), endpoint.ByteStreamSettings())
 
-	metas.WriteTo(rmcResponseStream)
+	metas.WriteTo(resStream)
 
-	rmcResponseBody := rmcResponseStream.Bytes()
+	res := nex.NewRMCSuccess(endpoint, resStream.Bytes())
+	res.ProtocolID = datastore.ProtocolID
+	res.MethodID = datastore.MethodGetSpecificMetaV1
+	res.CallID = callID
 
-	rmcResponse := nex.NewRMCSuccess(endpoint, rmcResponseBody)
-	rmcResponse.ProtocolID = datastore.ProtocolID
-	rmcResponse.MethodID = datastore.MethodGetSpecificMetaV1
-	rmcResponse.CallID = callID
-
-	return rmcResponse, nil
+	return res, nil
 }
