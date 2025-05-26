@@ -18,22 +18,19 @@ func GetNewArrivedNotificationsV1(err error, packet nex.PacketInterface, callID 
 	endpoint := connection.Endpoint()
 
 	notifications, more, nErr := datastore_db.GetArrivedNotificationsByPID(connection.PID(), param.LastNotificationID, param.Limit)
-
 	if nErr != nil {
 		return nil, nErr
 	}
 
-	rmcResponseStream := nex.NewByteStreamOut(endpoint.LibraryVersions(), endpoint.ByteStreamSettings())
+	resStream := nex.NewByteStreamOut(endpoint.LibraryVersions(), endpoint.ByteStreamSettings())
 
-	notifications.WriteTo(rmcResponseStream)
-	more.WriteTo(rmcResponseStream)
+	notifications.WriteTo(resStream)
+	more.WriteTo(resStream)
 
-	rmcResponseBody := rmcResponseStream.Bytes()
+	res := nex.NewRMCSuccess(endpoint, resStream.Bytes())
+	res.ProtocolID = datastore.ProtocolID
+	res.MethodID = datastore.MethodGetNewArrivedNotificationsV1
+	res.CallID = callID
 
-	rmcResponse := nex.NewRMCSuccess(endpoint, rmcResponseBody)
-	rmcResponse.ProtocolID = datastore.ProtocolID
-	rmcResponse.MethodID = datastore.MethodGetNewArrivedNotificationsV1
-	rmcResponse.CallID = callID
-
-	return rmcResponse, nil
+	return res, nil
 }

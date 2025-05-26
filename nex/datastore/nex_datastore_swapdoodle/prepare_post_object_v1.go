@@ -1,7 +1,6 @@
 package nex_datastore_swapdoodle
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/PretendoNetwork/nex-go/v2"
@@ -26,15 +25,16 @@ func PreparePostObjectV1(err error, packet nex.PacketInterface, callID uint32, p
 	connection := packet.Sender()
 	endpoint := connection.Endpoint()
 
-	// TODO - Need to verify what param.PersistenceInitParam.DeleteLastObject really means. It's often set to true even when it wouldn't make sense
-	dataID, errCode := datastore_db.InitializeObjectByPreparePostParam(connection.PID(), param)
-	if errCode != nil {
-		globals.Logger.Errorf("Error on object init: %s", errCode.Error())
-		return nil, errCode
+	_dataID, nErr := datastore_db.InitializeObjectByPreparePostParam(connection.PID(), param)
+	dataID := types.NewUInt32(_dataID)
+
+	if nErr != nil {
+		globals.Logger.Errorf("Error on object init: %s", nErr.Error())
+		return nil, nErr
 	}
 
 	bucket := globals.DatastoreCommon.S3Bucket
-	key := fmt.Sprintf("%s/%d.bin", "letters", dataID)
+	key := globals.S3GetLetterKey(dataID)
 
 	URL, formData, err := globals.DatastoreCommon.S3Presigner.PostObject(bucket, key, time.Minute*15)
 	if err != nil {
@@ -42,38 +42,34 @@ func PreparePostObjectV1(err error, packet nex.PacketInterface, callID uint32, p
 		return nil, nex.NewError(nex.ResultCodes.DataStore.OperationNotAllowed, "change_error")
 	}
 
-	requestHeaders, errCode := globals.DatastoreCommon.S3PostRequestHeaders()
-	if errCode != nil {
-		return nil, errCode
+	requestHeaders, nErr := globals.DatastoreCommon.S3PostRequestHeaders()
+	if nErr != nil {
+		return nil, nErr
 	}
 
-	pReqPostInfo := datastore_types.NewDataStoreReqPostInfoV1()
+	resStream := nex.NewByteStreamOut(endpoint.LibraryVersions(), endpoint.ByteStreamSettings())
 
-	pReqPostInfo.DataID = types.NewUInt32(dataID)
-	pReqPostInfo.URL = types.NewString(URL.String())
-	pReqPostInfo.RequestHeaders = types.NewList[datastore_types.DataStoreKeyValue]()
-	pReqPostInfo.FormFields = types.NewList[datastore_types.DataStoreKeyValue]()
-	pReqPostInfo.RootCACert = types.NewBuffer(globals.DatastoreCommon.RootCACert)
-	pReqPostInfo.RequestHeaders = requestHeaders
+	postObjectInfo := datastore_types.NewDataStoreReqPostInfoV1()
+	postObjectInfo.DataID = dataID
+	postObjectInfo.URL = types.NewString(URL.String())
+	postObjectInfo.RequestHeaders = types.NewList[datastore_types.DataStoreKeyValue]()
+	postObjectInfo.FormFields = types.NewList[datastore_types.DataStoreKeyValue]()
+	postObjectInfo.RootCACert = types.NewBuffer(globals.DatastoreCommon.RootCACert)
+	postObjectInfo.RequestHeaders = requestHeaders
 
 	for key, value := range formData {
 		field := datastore_types.NewDataStoreKeyValue()
 		field.Key = types.NewString(key)
 		field.Value = types.NewString(value)
-
-		pReqPostInfo.FormFields = append(pReqPostInfo.FormFields, field)
+		postObjectInfo.FormFields = append(postObjectInfo.FormFields, field)
 	}
 
-	rmcResponseStream := nex.NewByteStreamOut(endpoint.LibraryVersions(), endpoint.ByteStreamSettings())
+	postObjectInfo.WriteTo(resStream)
 
-	pReqPostInfo.WriteTo(rmcResponseStream)
+	res := nex.NewRMCSuccess(endpoint, resStream.Bytes())
+	res.ProtocolID = datastore.ProtocolID
+	res.MethodID = datastore.MethodPreparePostObjectV1
+	res.CallID = callID
 
-	rmcResponseBody := rmcResponseStream.Bytes()
-
-	rmcResponse := nex.NewRMCSuccess(endpoint, rmcResponseBody)
-	rmcResponse.ProtocolID = datastore.ProtocolID
-	rmcResponse.MethodID = datastore.MethodPreparePostObjectV1
-	rmcResponse.CallID = callID
-
-	return rmcResponse, nil
+	return res, nil
 }
