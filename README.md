@@ -1,3 +1,7 @@
+# ARCHIVED - THIS REPOSITORY WILL NOT ACCEPT CONTRIBUTIONS
+
+Development has been moved to [SwapdoodleRevival/swapdoodle](https://github.com/SwapdoodleRevival/swapdoodle), which is a proper merge of [PretendoNetwork/swapdoodle](https://github.com/PretendoNetwork/swapdoodle) and will be (hopefully) merged there at some point. The code here is identical to [SwapdoodleRevival/swapdoodle - commit 8a1f568](https://github.com/SwapdoodleRevival/swapdoodle/commit/8a1f5687e4bf5f2ee0ae1e925fb91e240fbce376). No new changes will be made here.
+
 # Swapdoodle HPP server
 
 A sorta-working replacement server for Swapdoodle
